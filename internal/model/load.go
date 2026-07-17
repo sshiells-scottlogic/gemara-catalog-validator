@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
@@ -10,7 +11,8 @@ import (
 
 // catalogKeys are the top-level keys that identify a file as a source catalog
 // asset. A file lacking all of them (metadata.yaml, groups.yaml, categories.yaml,
-// …) is skipped.
+// …) is not walked for ids/refs — though metadata.yaml is still read for its
+// catalog prefix.
 var catalogKeys = map[string]bool{
 	"capabilities": true,
 	"threats":      true,
@@ -41,7 +43,7 @@ func discover(paths []string) ([]string, error) {
 			return nil, fmt.Errorf("path %q: %w", p, err)
 		}
 		if !info.IsDir() {
-			out = append(out, p)
+			out = append(out, filepath.ToSlash(p))
 			continue
 		}
 		err = filepath.WalkDir(p, func(path string, d os.DirEntry, err error) error {
@@ -64,22 +66,52 @@ func discover(paths []string) ([]string, error) {
 	return out, nil
 }
 
-func (idx *Index) addFile(path string) error {
-	data, err := os.ReadFile(path)
+func (idx *Index) addFile(p string) error {
+	p = filepath.ToSlash(p)
+	data, err := os.ReadFile(p)
 	if err != nil {
-		return fmt.Errorf("reading %q: %w", path, err)
+		return fmt.Errorf("reading %q: %w", p, err)
 	}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
-		return fmt.Errorf("parsing %q: %w", path, err)
+		return fmt.Errorf("parsing %q: %w", p, err)
 	}
 	root := rootMapping(&doc)
-	if root == nil || !isCatalog(root) {
-		return nil // not a catalog asset — skip
+	if root == nil {
+		return nil
 	}
-	idx.Files = append(idx.Files, path)
-	idx.walk(path, &doc)
+	dir := path.Dir(p)
+
+	// A metadata.yaml carries the catalog's canonical id prefix.
+	if id, loc, ok := metadataID(root); ok {
+		loc.File = p
+		c := idx.catalog(dir)
+		c.Prefix = id
+		c.PrefixLoc = loc
+	}
+
+	// A catalog asset (capabilities/threats/controls) contributes ids and refs.
+	if isCatalog(root) {
+		idx.catalog(dir).HasAssets = true
+		idx.Files = append(idx.Files, p)
+		idx.walk(p, &doc)
+	}
 	return nil
+}
+
+// catalog returns the Catalog for dir, creating it on first use.
+func (idx *Index) catalog(dir string) *Catalog {
+	c := idx.Catalogs[dir]
+	if c == nil {
+		c = &Catalog{Dir: dir}
+		idx.Catalogs[dir] = c
+	}
+	return c
+}
+
+// CatalogFor returns the catalog a file belongs to, or nil if none is known.
+func (idx *Index) CatalogFor(file string) *Catalog {
+	return idx.Catalogs[path.Dir(filepath.ToSlash(file))]
 }
 
 func rootMapping(doc *yaml.Node) *yaml.Node {
@@ -103,6 +135,32 @@ func isCatalog(m *yaml.Node) bool {
 		}
 	}
 	return false
+}
+
+// metadataID extracts `metadata.id` from a document root, if present.
+func metadataID(root *yaml.Node) (string, Location, bool) {
+	md := mapValue(root, "metadata")
+	if md == nil || md.Kind != yaml.MappingNode {
+		return "", Location{}, false
+	}
+	id := mapValue(md, "id")
+	if id == nil || id.Kind != yaml.ScalarNode || id.Value == "" {
+		return "", Location{}, false
+	}
+	return id.Value, Location{Line: id.Line, Col: id.Column}, true
+}
+
+// mapValue returns the value node for key in a mapping node, or nil.
+func mapValue(m *yaml.Node, key string) *yaml.Node {
+	if m == nil || m.Kind != yaml.MappingNode {
+		return nil
+	}
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		if m.Content[i].Value == key {
+			return m.Content[i+1]
+		}
+	}
+	return nil
 }
 
 // walk records every `id:` and `reference-id:` scalar in the node tree, with

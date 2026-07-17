@@ -18,6 +18,10 @@ errors those miss:
 - **`reference-resolves`** — every internal `reference-id` (imports, threat→capability
   and control→threat mappings) resolves to a defined `id` in the catalog set.
 - **`unique-ids`** — every `id` is defined exactly once.
+- **`id-prefix`** — every defined `id` carries its catalog's canonical prefix,
+  taken from that catalog's `metadata.id` (e.g. a catalog whose `metadata.id` is
+  `CCC.Monitor` must define `CCC.Monitor.*` ids). Catches casing/typo/copy-paste
+  prefix drift.
 
 More checks are easy to add (see below).
 
