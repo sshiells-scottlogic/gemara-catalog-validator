@@ -172,6 +172,7 @@ func (idx *Index) walk(file string, n *yaml.Node) {
 			idx.walk(file, c)
 		}
 	case yaml.MappingNode:
+		idx.recordRequirements(file, n)
 		for i := 0; i+1 < len(n.Content); i += 2 {
 			key, val := n.Content[i], n.Content[i+1]
 			if val.Kind == yaml.ScalarNode {
@@ -185,5 +186,33 @@ func (idx *Index) walk(file string, n *yaml.Node) {
 			}
 			idx.walk(file, val)
 		}
+	}
+}
+
+// recordRequirements detects a control mapping (one bearing an
+// `assessment-requirements` list) and records each requirement id together
+// with its parent control id.
+func (idx *Index) recordRequirements(file string, ctrl *yaml.Node) {
+	ars := mapValue(ctrl, "assessment-requirements")
+	if ars == nil || ars.Kind != yaml.SequenceNode {
+		return
+	}
+	var ctrlID string
+	var ctrlLoc Location
+	if idNode := mapValue(ctrl, "id"); idNode != nil && idNode.Kind == yaml.ScalarNode {
+		ctrlID = idNode.Value
+		ctrlLoc = Location{File: file, Line: idNode.Line, Col: idNode.Column}
+	}
+	for _, ar := range ars.Content {
+		idNode := mapValue(ar, "id")
+		if idNode == nil || idNode.Kind != yaml.ScalarNode {
+			continue
+		}
+		idx.Requirements = append(idx.Requirements, Requirement{
+			ID:         idNode.Value,
+			Location:   Location{File: file, Line: idNode.Line, Col: idNode.Column},
+			ControlID:  ctrlID,
+			ControlLoc: ctrlLoc,
+		})
 	}
 }

@@ -1,0 +1,11 @@
+controls:
+  - id: EX.Svc.CN01
+    group: Service
+    title: Example control
+    assessment-requirements:
+      - id: EX.Svc.CN01.AR01
+        text: correctly nested under CN01
+      - id: EX.Svc.CN02.AR01
+        text: WRONG — nests under CN02, but its control is CN01
+      - id: EX.Svc.CN01.X1
+        text: WRONG — nests under CN01 but the suffix is not AR<n>
