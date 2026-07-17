@@ -24,20 +24,40 @@ type Ref struct {
 	Location Location
 }
 
-// Index is the whole loaded catalog set: every defined id, every reference,
-// and the files they came from.
+// Catalog is one catalog directory (the folder holding capabilities/threats/
+// controls assets and their metadata).
+type Catalog struct {
+	// Dir is the slash-normalized directory the catalog's files live in.
+	Dir string
+	// Prefix is the catalog's canonical id prefix, taken from `metadata.id`
+	// (e.g. "CCC.Monitor"). Empty if no metadata.id was found.
+	Prefix string
+	// PrefixLoc is where `metadata.id` is defined, for diagnostics.
+	PrefixLoc Location
+	// HasAssets is true once a capabilities/threats/controls file is seen here.
+	HasAssets bool
+}
+
+// Index is the whole loaded catalog set: every defined id, every reference, the
+// catalogs they belong to, and the files they came from.
 type Index struct {
-	Files   []string
-	Defs    map[string]Def // id -> first definition
-	DupDefs []Def          // definitions of an id already seen (duplicates)
-	Refs    []Ref          // every reference-id occurrence, in file order
+	Files    []string
+	Defs     map[string]Def      // id -> first definition
+	AllDefs  []Def               // every `id:` occurrence, in file order
+	DupDefs  []Def               // definitions of an id already seen (duplicates)
+	Refs     []Ref               // every reference-id occurrence, in file order
+	Catalogs map[string]*Catalog // keyed by directory
 }
 
 func newIndex() *Index {
-	return &Index{Defs: make(map[string]Def)}
+	return &Index{
+		Defs:     make(map[string]Def),
+		Catalogs: make(map[string]*Catalog),
+	}
 }
 
 func (idx *Index) addDef(id string, loc Location) {
+	idx.AllDefs = append(idx.AllDefs, Def{ID: id, Location: loc})
 	if _, seen := idx.Defs[id]; seen {
 		idx.DupDefs = append(idx.DupDefs, Def{ID: id, Location: loc})
 		return
