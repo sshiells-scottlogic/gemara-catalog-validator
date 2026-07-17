@@ -1,3 +1,6 @@
 /gemara-validate
 /gemara-validate.exe
 *.exe
+
+# Local scan output
+/errors.txt

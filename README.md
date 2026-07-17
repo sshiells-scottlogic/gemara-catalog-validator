@@ -22,6 +22,10 @@ errors those miss:
   taken from that catalog's `metadata.id` (e.g. a catalog whose `metadata.id` is
   `CCC.Monitor` must define `CCC.Monitor.*` ids). Catches casing/typo/copy-paste
   prefix drift.
+- **`ar-nesting`** — every `assessment-requirement` id nests under its parent
+  control id as `<controlId>.AR<n>` (e.g. control `CCC.GenAI.CN01` →
+  `CCC.GenAI.CN01.AR01`). Catches requirements copy-pasted under the wrong
+  control and malformed requirement ids.
 
 More checks are easy to add (see below).
 

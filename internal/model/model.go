@@ -24,6 +24,15 @@ type Ref struct {
 	Location Location
 }
 
+// Requirement is an assessment-requirement id together with the control it is
+// declared under, so checks can verify the two are consistent.
+type Requirement struct {
+	ID         string
+	Location   Location
+	ControlID  string // id of the enclosing control ("" if the control has none)
+	ControlLoc Location
+}
+
 // Catalog is one catalog directory (the folder holding capabilities/threats/
 // controls assets and their metadata).
 type Catalog struct {
@@ -45,8 +54,9 @@ type Index struct {
 	Defs     map[string]Def      // id -> first definition
 	AllDefs  []Def               // every `id:` occurrence, in file order
 	DupDefs  []Def               // definitions of an id already seen (duplicates)
-	Refs     []Ref               // every reference-id occurrence, in file order
-	Catalogs map[string]*Catalog // keyed by directory
+	Refs         []Ref               // every reference-id occurrence, in file order
+	Requirements []Requirement       // assessment requirements with their control
+	Catalogs     map[string]*Catalog // keyed by directory
 }
 
 func newIndex() *Index {
