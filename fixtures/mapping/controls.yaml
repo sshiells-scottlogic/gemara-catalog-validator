@@ -1,0 +1,18 @@
+controls:
+  - id: EX.Svc.CN01
+    group: Service
+    title: Complete — mitigates a threat
+    threats:
+      - reference-id: EX
+        entries:
+          - reference-id: EX.Svc.TH01
+            remarks: ok
+    assessment-requirements:
+      - id: EX.Svc.CN01.AR01
+        text: x
+  - id: EX.Svc.CN02
+    group: Service
+    title: Incomplete — mitigates no threat
+    assessment-requirements:
+      - id: EX.Svc.CN02.AR01
+        text: x

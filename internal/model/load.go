@@ -95,8 +95,84 @@ func (idx *Index) addFile(p string) error {
 		idx.catalog(dir).HasAssets = true
 		idx.Files = append(idx.Files, p)
 		idx.walk(p, &doc)
+		idx.recordItems(p, root)
 	}
 	return nil
+}
+
+// itemKinds maps each catalog top-level list key to the singular kind of the
+// entries it holds.
+var itemKinds = map[string]string{
+	"capabilities": "capability",
+	"threats":      "threat",
+	"controls":     "control",
+}
+
+// recordItems captures each top-level catalog entry (capability/threat/control)
+// with its outgoing mapping blocks.
+func (idx *Index) recordItems(file string, root *yaml.Node) {
+	for key, kind := range itemKinds {
+		seq := mapValue(root, key)
+		if seq == nil || seq.Kind != yaml.SequenceNode {
+			continue
+		}
+		for _, node := range seq.Content {
+			if node.Kind != yaml.MappingNode {
+				continue
+			}
+			item := Item{Kind: kind, Mappings: map[string][]Mapping{}}
+			if id := mapValue(node, "id"); id != nil && id.Kind == yaml.ScalarNode {
+				item.ID = id.Value
+				item.Location = Location{File: file, Line: id.Line, Col: id.Column}
+			}
+			// Any child that is a list of mapping-groups (each with `entries`)
+			// is an outgoing mapping block (threats, capabilities, guidelines…).
+			for i := 0; i+1 < len(node.Content); i += 2 {
+				bkey, bval := node.Content[i], node.Content[i+1]
+				if bval.Kind != yaml.SequenceNode {
+					continue
+				}
+				if maps := extractMappings(file, bval); len(maps) > 0 {
+					item.Mappings[bkey.Value] = maps
+				}
+			}
+			idx.Items = append(idx.Items, item)
+		}
+	}
+}
+
+// extractMappings pulls the leaf entries out of a mapping-block sequence:
+//
+//	- reference-id: CCC        # group
+//	  entries:
+//	    - reference-id: CCC.Core.CP01
+func extractMappings(file string, seq *yaml.Node) []Mapping {
+	var out []Mapping
+	for _, group := range seq.Content {
+		if group.Kind != yaml.MappingNode {
+			continue
+		}
+		entries := mapValue(group, "entries")
+		if entries == nil || entries.Kind != yaml.SequenceNode {
+			continue // not a mapping block (e.g. an `applicability` string list)
+		}
+		groupRef := ""
+		if g := mapValue(group, "reference-id"); g != nil && g.Kind == yaml.ScalarNode {
+			groupRef = g.Value
+		}
+		for _, e := range entries.Content {
+			ref := mapValue(e, "reference-id")
+			if ref == nil || ref.Kind != yaml.ScalarNode {
+				continue
+			}
+			out = append(out, Mapping{
+				RefID:    ref.Value,
+				Group:    groupRef,
+				Location: Location{File: file, Line: ref.Line, Col: ref.Column},
+			})
+		}
+	}
+	return out
 }
 
 // catalog returns the Catalog for dir, creating it on first use.

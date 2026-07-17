@@ -26,6 +26,15 @@ errors those miss:
   control id as `<controlId>.AR<n>` (e.g. control `CCC.GenAI.CN01` →
   `CCC.GenAI.CN01.AR01`). Catches requirements copy-pasted under the wrong
   control and malformed requirement ids.
+- **`mapping-completeness`** — every control maps to at least one threat, and
+  every threat to at least one capability.
+
+### Opt-in checks
+
+- **`mapping-orphans`** (`-orphans`) — reports threats no control mitigates and
+  capabilities no threat references, as **warnings**. Useful as a build-out
+  stat, but noisy while catalogs are still being populated, so it is off by
+  default and never affects the exit code. Enable with the `-orphans` flag.
 
 More checks are easy to add (see below).
 
@@ -42,6 +51,7 @@ go build -o gemara-validate .
 ./gemara-validate                       # uses .gemara-validate.yaml + defaults
 ./gemara-validate -format github        # inline annotations for CI
 ./gemara-validate path/to/catalogs      # override configured paths
+./gemara-validate -orphans              # also report orphan stats (warnings)
 ```
 
 In GitHub Actions (blocks merge as a required status check):

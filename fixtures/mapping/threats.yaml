@@ -1,0 +1,12 @@
+threats:
+  - id: EX.Svc.TH01
+    group: Service
+    title: Complete — maps to a capability, and mitigated by a control
+    capabilities:
+      - reference-id: EX
+        entries:
+          - reference-id: EX.Svc.CP01
+            remarks: ok
+  - id: EX.Svc.TH02
+    group: Service
+    title: Incomplete — maps to no capability (and no control mitigates it)

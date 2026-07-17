@@ -38,10 +38,23 @@ type Check interface {
 	Run(*Context) []Finding
 }
 
-var registry []Check
+var (
+	registry []Check
+	optional = map[string]Check{}
+)
 
-// Register adds a check to the registry. Call from an init() in the rule's file.
+// Register adds a check that runs by default. Call from an init() in the rule's file.
 func Register(c Check) { registry = append(registry, c) }
 
-// All returns the registered checks in registration order.
+// RegisterOptional adds an opt-in check, enabled by name via a CLI flag rather
+// than run by default (e.g. noisy "stats" checks).
+func RegisterOptional(name string, c Check) { optional[name] = c }
+
+// All returns the default checks in registration order.
 func All() []Check { return registry }
+
+// Optional returns the opt-in check registered under name, if any.
+func Optional(name string) (Check, bool) {
+	c, ok := optional[name]
+	return c, ok
+}
