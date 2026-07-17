@@ -33,6 +33,24 @@ type Requirement struct {
 	ControlLoc Location
 }
 
+// Mapping is one outgoing relationship entry from an Item to another artifact
+// (e.g. a control's threat mapping, a threat's capability mapping).
+type Mapping struct {
+	RefID    string // referenced id (entries[].reference-id)
+	Group    string // the enclosing mapping-group reference-id (e.g. "CCC")
+	Location Location
+}
+
+// Item is a top-level catalog entry (a capability, threat, or control) together
+// with its outgoing mapping blocks, keyed by block name ("threats",
+// "capabilities", "guidelines", …).
+type Item struct {
+	ID       string
+	Kind     string // "capability" | "threat" | "control"
+	Location Location
+	Mappings map[string][]Mapping
+}
+
 // Catalog is one catalog directory (the folder holding capabilities/threats/
 // controls assets and their metadata).
 type Catalog struct {
@@ -56,6 +74,7 @@ type Index struct {
 	DupDefs  []Def               // definitions of an id already seen (duplicates)
 	Refs         []Ref               // every reference-id occurrence, in file order
 	Requirements []Requirement       // assessment requirements with their control
+	Items        []Item              // capabilities/threats/controls with mappings
 	Catalogs     map[string]*Catalog // keyed by directory
 }
 

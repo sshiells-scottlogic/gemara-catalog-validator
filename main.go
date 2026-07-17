@@ -27,6 +27,7 @@ func main() {
 func run() (int, error) {
 	configPath := flag.String("config", ".gemara-validate.yaml", "path to config file")
 	format := flag.String("format", "text", "output format: text | github")
+	orphans := flag.Bool("orphans", false, "also report orphans (unmitigated threats, unreferenced capabilities) as warnings")
 	flag.Parse()
 
 	cfg, err := config.Load(*configPath)
@@ -45,9 +46,16 @@ func run() (int, error) {
 		return 0, err
 	}
 
+	checks := check.All()
+	if *orphans {
+		if c, ok := check.Optional("orphans"); ok {
+			checks = append(checks, c)
+		}
+	}
+
 	ctx := &check.Context{Index: idx, Config: cfg}
 	var findings []check.Finding
-	for _, c := range check.All() {
+	for _, c := range checks {
 		findings = append(findings, c.Run(ctx)...)
 	}
 
@@ -62,7 +70,7 @@ func run() (int, error) {
 		}
 	}
 	fmt.Fprintf(os.Stderr, "\n%d file(s), %d check(s), %d finding(s) (%d error).\n",
-		len(idx.Files), len(check.All()), len(findings), errCount)
+		len(idx.Files), len(checks), len(findings), errCount)
 
 	if errCount > 0 && cfg.FailOn == "error" {
 		return 1, nil
