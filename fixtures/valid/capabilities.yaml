@@ -1,0 +1,7 @@
+capabilities:
+  - id: EX.Core.CP01
+    group: Base
+    title: Base capability
+  - id: EX.Svc.CP01
+    group: Service
+    title: Service capability

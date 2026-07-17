@@ -1,0 +1,11 @@
+threats:
+  - id: EX.Svc.TH01
+    group: Service
+    title: Example threat
+    capabilities:
+      - reference-id: EX
+        entries:
+          - reference-id: EX.Core.CP01
+            remarks: resolves to base capability
+          - reference-id: EX.Svc.CP01
+            remarks: resolves to service capability

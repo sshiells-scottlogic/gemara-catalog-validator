@@ -1,0 +1,11 @@
+threats:
+  - id: EX.Svc.TH01
+    group: Service
+    title: Example threat
+    capabilities:
+      - reference-id: EX
+        entries:
+          - reference-id: EX.Core.CP01
+            remarks: resolves fine
+          - reference-id: EX.Svc.CP99
+            remarks: DANGLING — no capability with this id is defined

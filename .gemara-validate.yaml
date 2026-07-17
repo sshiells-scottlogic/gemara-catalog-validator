@@ -1,0 +1,15 @@
+# Example config for a consuming repo. Copy to the repo root and adjust.
+# All project-specific conventions live here; the validator itself is generic.
+
+# Files or directories to scan for catalog assets.
+paths:
+  - catalogs
+
+# Regexp matching an *internal*, resolvable reference-id. References that don't
+# match — mapping-group shorthands ("CCC") and external frameworks ("CCM.*") —
+# are ignored by referential-integrity checks.
+# This default matches the FINOS common-cloud-controls id scheme.
+id-pattern: '^CCC\.[A-Za-z0-9]+\.(CP|CN|TH)[0-9]+$'
+
+# "error" (default): exit non-zero on any error finding. "never": always exit 0.
+fail-on: error
