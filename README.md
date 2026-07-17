@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with: { go-version: '1.23' }
-      - run: go run github.com/scottlogic/gemara-catalog-validator@latest -format github
+      - run: go run github.com/sshiells-scottlogic/gemara-catalog-validator@latest -format github
 ```
 
 (For production, publish tagged binaries via GoReleaser and ship a thin

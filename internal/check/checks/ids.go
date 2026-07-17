@@ -3,7 +3,7 @@ package checks
 import (
 	"fmt"
 
-	"github.com/scottlogic/gemara-catalog-validator/internal/check"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/check"
 )
 
 // uniqueIDs verifies each id is defined exactly once across the whole set.

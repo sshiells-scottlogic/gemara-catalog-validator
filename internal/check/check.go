@@ -3,8 +3,8 @@
 package check
 
 import (
-	"github.com/scottlogic/gemara-catalog-validator/internal/config"
-	"github.com/scottlogic/gemara-catalog-validator/internal/model"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/config"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/model"
 )
 
 // Severity classifies a finding.

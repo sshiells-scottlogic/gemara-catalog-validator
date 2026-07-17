@@ -5,7 +5,7 @@ package checks
 import (
 	"fmt"
 
-	"github.com/scottlogic/gemara-catalog-validator/internal/check"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/check"
 )
 
 // referentialIntegrity verifies every internal reference-id resolves to a

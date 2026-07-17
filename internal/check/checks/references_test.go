@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/scottlogic/gemara-catalog-validator/internal/check"
-	"github.com/scottlogic/gemara-catalog-validator/internal/config"
-	"github.com/scottlogic/gemara-catalog-validator/internal/model"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/check"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/config"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/model"
 )
 
 func loadCtx(t *testing.T, dir string) *check.Context {

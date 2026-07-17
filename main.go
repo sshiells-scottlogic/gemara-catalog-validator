@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/scottlogic/gemara-catalog-validator/internal/check"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/check"
 	// Side-effect import: registers all checks.
-	_ "github.com/scottlogic/gemara-catalog-validator/internal/check/checks"
-	"github.com/scottlogic/gemara-catalog-validator/internal/config"
-	"github.com/scottlogic/gemara-catalog-validator/internal/model"
+	_ "github.com/sshiells-scottlogic/gemara-catalog-validator/internal/check/checks"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/config"
+	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/model"
 )
 
 func main() {
