@@ -15,6 +15,9 @@ import (
 	"github.com/sshiells-scottlogic/gemara-catalog-validator/internal/model"
 )
 
+// version is stamped at build time by GoReleaser (-X main.version=...).
+var version = "dev"
+
 func main() {
 	code, err := run()
 	if err != nil {
@@ -28,11 +31,30 @@ func run() (int, error) {
 	configPath := flag.String("config", ".gemara-validate.yaml", "path to config file")
 	format := flag.String("format", "text", "output format: text | github")
 	orphans := flag.Bool("orphans", false, "also report orphans (unmitigated threats, unreferenced capabilities) as warnings")
+	failOn := flag.String("fail-on", "", "exit non-zero policy: error | never (overrides config; default from config)")
+	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		return 0, nil
+	}
 
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		return 0, err
+	}
+
+	// A CLI -fail-on overrides the config. This is how the GitHub Action toggles
+	// between gate mode (fail the build on errors) and monitor mode (report but
+	// never fail) without editing the repo's config file.
+	if *failOn != "" {
+		switch *failOn {
+		case "error", "never":
+			cfg.FailOn = *failOn
+		default:
+			return 0, fmt.Errorf("invalid -fail-on %q (want: error | never)", *failOn)
+		}
 	}
 
 	// Positional args override the configured paths (handy for local runs).
