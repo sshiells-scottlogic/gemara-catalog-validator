@@ -1,0 +1,69 @@
+name: Gemara Catalog Validator
+description: >-
+  Validate the data correctness of Gemara source catalogs (referential
+  integrity, id conventions, mapping completeness) and report findings inline
+  on the pull request.
+author: sshiells-scottlogic
+branding:
+  icon: check-circle
+  color: purple
+
+inputs:
+  paths:
+    description: 'Files/directories to validate (whitespace-separated). Overrides the config `paths`.'
+    required: false
+    default: ''
+  config:
+    description: 'Path to the .gemara-validate.yaml config file.'
+    required: false
+    default: '.gemara-validate.yaml'
+  format:
+    description: 'Output format: github (inline annotations) or text.'
+    required: false
+    default: 'github'
+  fail-on-error:
+    description: >-
+      'true' = gate mode: fail the build (non-zero exit) when validation errors
+      are found. 'false' = monitor mode: report annotations but never fail, so
+      the step can stay in place while errors are worked through.
+    required: false
+    default: 'true'
+  orphans:
+    description: "Also report orphan stats (unmitigated threats, unreferenced capabilities) as warnings."
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache-dependency-path: ${{ github.action_path }}/go.sum
+
+    - name: Build validator
+      shell: bash
+      run: go build -o "$RUNNER_TEMP/gemara-validate" "$GITHUB_ACTION_PATH"
+
+    - name: Validate catalogs
+      shell: bash
+      env:
+        IN_CONFIG: ${{ inputs.config }}
+        IN_FORMAT: ${{ inputs.format }}
+        IN_FAIL_ON_ERROR: ${{ inputs.fail-on-error }}
+        IN_ORPHANS: ${{ inputs.orphans }}
+        IN_PATHS: ${{ inputs.paths }}
+      run: |
+        set -euo pipefail
+        args=(-config "$IN_CONFIG" -format "$IN_FORMAT")
+        if [ "$IN_FAIL_ON_ERROR" = "false" ]; then
+          args+=(-fail-on never)
+        fi
+        if [ "$IN_ORPHANS" = "true" ]; then
+          args+=(-orphans)
+        fi
+        # Split IN_PATHS on whitespace into positional args (may be empty).
+        # shellcheck disable=SC2206
+        paths=($IN_PATHS)
+        "$RUNNER_TEMP/gemara-validate" "${args[@]}" "${paths[@]}"

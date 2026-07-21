@@ -4,3 +4,6 @@
 
 # Local scan output
 /errors.txt
+
+# GoReleaser build output
+/dist/

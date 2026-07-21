@@ -52,9 +52,23 @@ go build -o gemara-validate .
 ./gemara-validate -format github        # inline annotations for CI
 ./gemara-validate path/to/catalogs      # override configured paths
 ./gemara-validate -orphans              # also report orphan stats (warnings)
+./gemara-validate -fail-on never        # report but never exit non-zero (monitor)
+./gemara-validate -version
 ```
 
-In GitHub Actions (blocks merge as a required status check):
+Install a released binary from the [releases page](../../releases), or:
+
+```bash
+go install github.com/sshiells-scottlogic/gemara-catalog-validator@latest
+```
+
+### GitHub Action
+
+Use the composite action on `pull_request`. It reports findings as inline
+annotations.
+
+**Gate mode** — fail the build on errors (make it a required status check to
+block merges):
 
 ```yaml
 on: { pull_request: { paths: ['**/*.yaml', '**/*.yml'] } }
@@ -63,13 +77,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with: { go-version: '1.23' }
-      - run: go run github.com/sshiells-scottlogic/gemara-catalog-validator@latest -format github
+      - uses: sshiells-scottlogic/gemara-catalog-validator@v1
+        with:
+          fail-on-error: true   # default
 ```
 
-(For production, publish tagged binaries via GoReleaser and ship a thin
-composite action that downloads the right one — faster than building per run.)
+**Monitor mode** — keep the validation step running and visible while errors
+are worked through, without failing the build. Flip to gate mode once clean:
+
+```yaml
+      - uses: sshiells-scottlogic/gemara-catalog-validator@v1
+        with:
+          fail-on-error: false
+          orphans: true         # optionally include orphan stats
+```
+
+Action inputs:
+
+| Input           | Default                 | Description                                                        |
+| --------------- | ----------------------- | ------------------------------------------------------------------ |
+| `fail-on-error` | `true`                  | `true` = fail the build on errors (gate); `false` = report only (monitor). |
+| `paths`         | (config)                | Files/dirs to validate; overrides the config `paths`.              |
+| `config`        | `.gemara-validate.yaml` | Path to the config file.                                           |
+| `format`        | `github`                | `github` (inline annotations) or `text`.                           |
+| `orphans`       | `false`                 | Also report orphan stats (warnings).                               |
 
 ## Configuration
 
