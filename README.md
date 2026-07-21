@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: sshiells-scottlogic/gemara-catalog-validator@v1
+      - uses: sshiells-scottlogic/gemara-catalog-validator@v1.0.0
         with:
           fail-on-error: true   # default
 ```
@@ -86,7 +86,7 @@ jobs:
 are worked through, without failing the build. Flip to gate mode once clean:
 
 ```yaml
-      - uses: sshiells-scottlogic/gemara-catalog-validator@v1
+      - uses: sshiells-scottlogic/gemara-catalog-validator@v1.0.0
         with:
           fail-on-error: false
           orphans: true         # optionally include orphan stats
