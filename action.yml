@@ -1,8 +1,7 @@
 name: Gemara Catalog Validator
 description: >-
-  Validate the data correctness of Gemara source catalogs (referential
-  integrity, id conventions, mapping completeness) and report findings inline
-  on the pull request.
+  Validate Gemara source catalogs (referential integrity, id conventions,
+  mapping completeness) and report findings on the PR.
 author: sshiells-scottlogic
 branding:
   icon: check-circle
